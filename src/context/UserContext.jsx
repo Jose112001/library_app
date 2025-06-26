@@ -9,6 +9,7 @@ export const UserProvider = ({ children }) => {
 
   // Función para cargar el usuario con su info personalizada
   const cargarUsuarioConRol = async (userAuth) => {
+    console.log(userAuth);
     if (!userAuth) {
       setRolUsuario(null);
       return;

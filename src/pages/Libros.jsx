@@ -41,6 +41,8 @@ const Libros = () => {
   return (
     <div className="max-w-4xl mx-auto mt-6 p-4 bg-white rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Listado de Libros</h2>
+      {console.log(rolUsuario)}
+      {console.log(usuario)}
       {rolUsuario?.id_rol === 2 && (
         <div className="mb-4">
           <Link
