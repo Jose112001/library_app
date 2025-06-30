@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import { UserContext } from "../context/UserContext";
 import { Link } from "react-router-dom";
+import ModalPrestamo from "../components/ModalPrestamos";
 
 const Libros = () => {
   const [libros, setLibros] = useState([]);
@@ -9,6 +10,8 @@ const Libros = () => {
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
   const { usuario, rolUsuario } = useContext(UserContext);
+  const [libroSeleccionado, setLibroSeleccionado] = useState(null);
+  const [mostrarModal, setMostrarModal] = useState(false);
 
   useEffect(() => {
     const obtenerLibros = async () => {
@@ -78,9 +81,31 @@ const Libros = () => {
                 Año: {libro.anio_publicacion} | ISBN: {libro.isbn} |{" "}
                 {libro.disponible ? "✅ Disponible" : "❌ Prestado"}
               </p>
+              {rolUsuario?.id_rol === 1 && libro.cantidad_disponible > 0 && (
+                <button
+                  className="bg-green-600 text-white px-3 py-1 mt-2 rounded hover:bg-green-700"
+                  onClick={() => {
+                    setLibroSeleccionado(libro);
+                    setMostrarModal(true);
+                  }}
+                >
+                  📖 Alquilar Libro
+                </button>
+              )}
             </li>
           ))}
         </ul>
+      )}
+      {mostrarModal && libroSeleccionado && (
+        <ModalPrestamo
+          libro={libroSeleccionado}
+          usuario={usuario}
+          onClose={() => setMostrarModal(false)}
+          onSuccess={() => {
+            // puedes actualizar el estado de libros o recargar lista
+            setLibroSeleccionado(null);
+          }}
+        />
       )}
     </div>
   );
