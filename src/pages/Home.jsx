@@ -1,7 +1,7 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import { useNavigate } from "react-router-dom";
+import bgImage from "../assets/imgages/laguna2.jpg";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -11,7 +11,6 @@ const Home = () => {
   useEffect(() => {
     const fetchUserAndStats = async () => {
       const { data: userData, error: userError } = await supabase.auth.getUser();
-
       if (userError || !userData?.user) {
         navigate("/login");
         return;
@@ -19,7 +18,6 @@ const Home = () => {
 
       setUser(userData.user);
 
-      // Consultar estadísticas
       const [librosTotal, librosDisponibles, prestamosActivos, misPrestamos] = await Promise.all([
         supabase.from("libros").select("*", { count: "exact", head: true }),
         supabase.from("libros").select("*", { count: "exact", head: true }).eq("disponible", true),
@@ -48,46 +46,48 @@ const Home = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white rounded shadow space-y-6">
-      <h1 className="text-2xl font-bold">Bienvenido a la Biblioteca 📚</h1>
+    <div className="contenedor" /*style={{backgroundImage: `url(${bgImage})`,backgroundSize: "cover",backgroundPosition: "center",minHeight: "100vh",padding: "2rem",}}*/>
+      <div className="max-w-3xl mx-auto p-6 bg-white bg-opacity-90 rounded shadow space-y-6">
+        <h1 className="text-2xl font-bold">Bienvenido a la Biblioteca 📚</h1>
 
-      {user && (
-        <div className="text-gray-700">
-          <p><strong>Correo:</strong> {user.email}</p>
-          {user.user_metadata?.nombres && (
-            <p><strong>Nombre:</strong> {user.user_metadata.nombres}</p>
-          )}
+        {user && (
+          <div className="text-gray-700">
+            <p><strong>Correo:</strong> {user.email}</p>
+            {user.user_metadata?.nombres && (
+              <p><strong>Nombre:</strong> {user.user_metadata.nombres}</p>
+            )}
+          </div>
+        )}
+
+        {stats && (
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div className="p-4 bg-blue-100 rounded">
+              <h2 className="text-lg font-bold">{stats.totalLibros}</h2>
+              <p>Total de libros</p>
+            </div>
+            <div className="p-4 bg-green-100 rounded">
+              <h2 className="text-lg font-bold">{stats.librosDisponibles}</h2>
+              <p>Libros disponibles</p>
+            </div>
+            <div className="p-4 bg-yellow-100 rounded">
+              <h2 className="text-lg font-bold">{stats.prestamosActivos}</h2>
+              <p>Préstamos activos</p>
+            </div>
+            <div className="p-4 bg-purple-100 rounded">
+              <h2 className="text-lg font-bold">{stats.misPrestamos}</h2>
+              <p>Mis préstamos activos</p>
+            </div>
+          </div>
+        )}
+
+        <div className="text-center">
+          <button
+            onClick={handleLogout}
+            className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Cerrar sesión
+          </button>
         </div>
-      )}
-
-      {stats && (
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div className="p-4 bg-blue-100 rounded">
-            <h2 className="text-lg font-bold">{stats.totalLibros}</h2>
-            <p>Total de libros</p>
-          </div>
-          <div className="p-4 bg-green-100 rounded">
-            <h2 className="text-lg font-bold">{stats.librosDisponibles}</h2>
-            <p>Libros disponibles</p>
-          </div>
-          <div className="p-4 bg-yellow-100 rounded">
-            <h2 className="text-lg font-bold">{stats.prestamosActivos}</h2>
-            <p>Préstamos activos</p>
-          </div>
-          <div className="p-4 bg-purple-100 rounded">
-            <h2 className="text-lg font-bold">{stats.misPrestamos}</h2>
-            <p>Mis préstamos activos</p>
-          </div>
-        </div>
-      )}
-
-      <div className="text-center">
-        <button
-          onClick={handleLogout}
-          className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Cerrar sesión
-        </button>
       </div>
     </div>
   );

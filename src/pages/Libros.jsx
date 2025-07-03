@@ -44,8 +44,8 @@ const Libros = () => {
   return (
     <div className="max-w-4xl mx-auto mt-6 p-4 bg-white rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Listado de Libros</h2>
+      {console.log("rol")}
       {console.log(rolUsuario)}
-      {console.log(usuario)}
       {rolUsuario?.id_rol === 2 && (
         <div className="mb-4">
           <Link
@@ -72,7 +72,7 @@ const Libros = () => {
         <ul className="space-y-3">
           {librosFiltrados.map((libro) => (
             <li
-              key={libro.id}
+              key={libro.id} // ✅ Agrega la key aquí
               className="p-3 border rounded hover:bg-gray-100 transition"
             >
               <h3 className="font-semibold">{libro.titulo}</h3>
@@ -81,17 +81,6 @@ const Libros = () => {
                 Año: {libro.anio_publicacion} | ISBN: {libro.isbn} |{" "}
                 {libro.disponible ? "✅ Disponible" : "❌ Prestado"}
               </p>
-              {rolUsuario?.id_rol === 1 && libro.cantidad_disponible > 0 && (
-                <button
-                  className="bg-green-600 text-white px-3 py-1 mt-2 rounded hover:bg-green-700"
-                  onClick={() => {
-                    setLibroSeleccionado(libro);
-                    setMostrarModal(true);
-                  }}
-                >
-                  📖 Alquilar Libro
-                </button>
-              )}
             </li>
           ))}
         </ul>
@@ -102,7 +91,6 @@ const Libros = () => {
           usuario={usuario}
           onClose={() => setMostrarModal(false)}
           onSuccess={() => {
-            // puedes actualizar el estado de libros o recargar lista
             setLibroSeleccionado(null);
           }}
         />

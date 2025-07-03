@@ -26,27 +26,55 @@ const AgregarLibro = () => {
 
   const buscarPorISBN = async () => {
     try {
-      const res = await fetch(
-        `https://openlibrary.org/isbn/${libro.isbn}.json`
+      const isbnLimpio = libro.isbn.replace(/-/g, "");
+      const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
+
+      //WorldCat
+      const WcRes = await fetch(`https://search.worldcat.org/es/search?q=${isbnLimpio}&offset=1`)
+
+      console.log(WcRes);
+      // Intenta con Google Books
+      const googleRes = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbnLimpio}&key=${GOOGLE_API_KEY}`
       );
-      if (!res.ok) throw new Error("Libro no encontrado");
-      const data = await res.json();
+      const googleData = await googleRes.json();
 
-      const titulo = data.title || "";
-      const authorKey = data.authors?.[0]?.key;
-      const workKey = data.works?.[0]?.key;
+      if (googleData.totalItems > 0) {
+        const item = googleData.items[0].volumeInfo;
+        setLibro((prev) => ({
+          ...prev,
+          titulo: item.title || "",
+          autor: item.authors?.[0] || "",
+          genero: item.categories?.[0] || "",
+        }));
+        return;
+      }
 
-      const autor = authorKey ? await obtenerAutor(authorKey) : "";
-      const genero = workKey ? await obtenerGenero(workKey) : "";
+      // Si Google falla, intenta con OpenLibrary
+      const openRes = await fetch(
+        `https://openlibrary.org/isbn/${isbnLimpio}.json`
+      );
+      if (openRes.ok) {
+        const data = await openRes.json();
+        const titulo = data.title || "";
+        const authorKey = data.authors?.[0]?.key;
+        const workKey = data.works?.[0]?.key;
 
-      setLibro((prev) => ({
-        ...prev,
-        titulo,
-        autor,
-        genero,
-      }));
+        const autor = authorKey ? await obtenerAutor(authorKey) : "";
+        const genero = workKey ? await obtenerGenero(workKey) : "";
+
+        setLibro((prev) => ({
+          ...prev,
+          titulo,
+          autor,
+          genero,
+        }));
+        return;
+      }
+
+      throw new Error("Libro no encontrado en fuentes públicas");
     } catch (error) {
-      console.error("Error al buscar por ISBN:", error);
+      console.error("Error buscando el libro:", error);
       setMensaje("❌ No se pudo encontrar información del libro");
     }
   };
