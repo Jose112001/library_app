@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { supabase } from "../services/supabase";
-import { useNavigate, Link } from "react-router-dom";
-import animacionCarga from "../assets/lotties/loading_lottie.json";
 import Lottie from "lottie-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import animacionCarga from "../assets/lotties/loading_lottie.json";
+import { supabase } from "../services/supabase";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +15,12 @@ const Login = () => {
   const loginConGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: "http://localhost:5173/callback",
+        queryParams: {
+          prompt: "select_account",
+        },
+      },
     });
     if (error) {
       console.error("Error al iniciar sesión con Google:", error.message);
@@ -125,7 +131,7 @@ const Login = () => {
           onClick={loginConGoogle}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
         >
-          Iniciar sesión con Google
+          Continuar con Google
         </button>
         {mensaje && <p className="mt-2 text-sm">{mensaje}</p>}
 

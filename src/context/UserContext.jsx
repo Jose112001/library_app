@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 
 export const UserContext = createContext();
@@ -7,7 +7,6 @@ export const UserProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [rolUsuario, setRolUsuario] = useState(null);
 
-  // Función para cargar el usuario con su info personalizada
   const cargarUsuarioConRol = async (userAuth) => {
     console.log(userAuth);
     if (!userAuth) {
@@ -29,7 +28,7 @@ export const UserProvider = ({ children }) => {
         console.error("❌ Error al cargar datos del usuario:", error.message);
         setRolUsuario({ ...data });
       } else {
-        setRolUsuario({...data });
+        setRolUsuario({ ...data });
       }
     } catch (err) {
       console.error("❗ Excepción al consultar el usuario con rol:", err);
@@ -52,9 +51,14 @@ export const UserProvider = ({ children }) => {
       listener.subscription.unsubscribe();
     };
   }, []);
-
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login"; // O usa navigate si estás en una ruta
+  };
   return (
-    <UserContext.Provider value={{ usuario, setUsuario, rolUsuario, setRolUsuario}}>
+    <UserContext.Provider
+      value={{ usuario, setUsuario, rolUsuario, setRolUsuario, handleLogout }}
+    >
       {children}
     </UserContext.Provider>
   );

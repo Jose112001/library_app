@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { supabase } from "../services/supabase";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../services/supabase";
 
 const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,13 +37,6 @@ const Register = () => {
       setMensaje("❌ Error al crear usuario: " + error.message);
       return;
     }
-    console.log("------------------------");
-    console.log("------------------------");
-    console.log("------------------------");
-    console.log(data);
-    console.log("------------------------");
-    console.log("------------------------");
-    console.log("------------------------");
     const user = data.user;
     if (!user) {
       setMensaje("⚠️ Falta confirmar tu correo para guardar tu perfil.");
@@ -61,7 +54,7 @@ const Register = () => {
         direccion,
         correo: email,
         contraseña: password,
-        id_rol: 2,
+        id_rol: 1,
         id_auth: user_id
       },
     ]);

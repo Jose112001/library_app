@@ -1,13 +1,13 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import AgregarLibro from "./components/AgregarLibro";
 import Navbar from "./components/Navbar";
+import AdminPanel from "./pages/AdminPanel";
+import Callback from "./pages/Callback";
 import Home from "./pages/Home";
 import Libros from "./pages/Libros";
-import Prestamos from "./pages/Prestamos";
 import Login from "./pages/Login";
-import AdminPanel from "./pages/AdminPanel";
+import Prestamos from "./pages/Prestamos";
 import Register from "./pages/Register";
-import AgregarLibro from "./components/AgregarLibro";
 // import RutaPrivadaAdmin from  "./components/AgregarLibro";
 
 function App() {
@@ -22,6 +22,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/callback" element={<Callback />} />
           {/* <Route path="/admin/libros/agregar" element={<RutaPrivadaAdmin><AgregarLibro /></RutaPrivadaAdmin>} /> */}
           <Route path="/libros/agregar" element={<AgregarLibro />} />
         </Routes>

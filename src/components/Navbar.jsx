@@ -1,15 +1,9 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
-import { supabase } from "../services/supabase";
-
 const Navbar = () => {
-  const { usuario } = useContext(UserContext);
+  const { usuario, handleLogout } = useContext(UserContext);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.reload(); // O redirige a login
-  };
 
   return (
     <nav className="bg-blue-600 text-white px-6 py-4 shadow">
@@ -28,8 +22,8 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/libros">Libros</Link>
-              <Link to="/mis-prestamos">Mis Préstamos</Link>
-              <Link to="/logout">Cerrar sesión</Link>
+              <Link to="/prestamos">Mis Préstamos</Link>
+              <button onClick={handleLogout}>Cerrar sesión</button>
             </>
           )}
         </div>

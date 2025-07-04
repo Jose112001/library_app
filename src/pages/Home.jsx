@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { supabase } from "../services/supabase";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import bgImage from "../assets/imgages/laguna2.jpg";
+import { UserContext } from "../context/UserContext";
+import { supabase } from "../services/supabase";
 
 const Home = () => {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
+  const { handleLogout} = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserAndStats = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
       if (userError || !userData?.user) {
         navigate("/login");
         return;
@@ -18,16 +20,23 @@ const Home = () => {
 
       setUser(userData.user);
 
-      const [librosTotal, librosDisponibles, prestamosActivos, misPrestamos] = await Promise.all([
-        supabase.from("libros").select("*", { count: "exact", head: true }),
-        supabase.from("libros").select("*", { count: "exact", head: true }).eq("disponible", true),
-        supabase.from("prestamos").select("*", { count: "exact", head: true }).eq("devuelto", false),
-        supabase
-          .from("prestamos")
-          .select("*", { count: "exact", head: true })
-          .eq("devuelto", false)
-          .eq("id_usuario", userData.user.id),
-      ]);
+      const [librosTotal, librosDisponibles, prestamosActivos, misPrestamos] =
+        await Promise.all([
+          supabase.from("libros").select("*", { count: "exact", head: true }),
+          supabase
+            .from("libros")
+            .select("*", { count: "exact", head: true })
+            .eq("disponible", true),
+          supabase
+            .from("prestamos")
+            .select("*", { count: "exact", head: true })
+            .eq("devuelto", false),
+          supabase
+            .from("prestamos")
+            .select("*", { count: "exact", head: true })
+            .eq("devuelto", false)
+            .eq("id_usuario", userData.user.id),
+        ]);
 
       setStats({
         totalLibros: librosTotal.count ?? 0,
@@ -40,22 +49,27 @@ const Home = () => {
     fetchUserAndStats();
   }, [navigate]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
+  
 
   return (
-    <div className="contenedor" /*style={{backgroundImage: `url(${bgImage})`,backgroundSize: "cover",backgroundPosition: "center",minHeight: "100vh",padding: "2rem",}}*/>
+    <div
+      className="contenedor" /*style={{backgroundImage: `url(${bgImage})`,backgroundSize: "cover",backgroundPosition: "center",minHeight: "100vh",padding: "2rem",}}*/
+    >
       <div className="max-w-3xl mx-auto p-6 bg-white bg-opacity-90 rounded shadow space-y-6">
         <h1 className="text-2xl font-bold">Bienvenido a la Biblioteca 📚</h1>
 
         {user && (
           <div className="text-gray-700">
-            <p><strong>Correo:</strong> {user.email}</p>
-            {user.user_metadata?.nombres && (
-              <p><strong>Nombre:</strong> {user.user_metadata.nombres}</p>
+            <p>
+              <strong>Correo:</strong> {user.email}
+            </p>
+            {user.user_metadata?.full_name && (
+              <p>
+                <strong>Nombre:</strong> {user.user_metadata.full_name}
+              </p>
             )}
+            {console.log(user)}
+            {console.log(user.user_metadata)}
           </div>
         )}
 
