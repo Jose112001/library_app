@@ -81,7 +81,7 @@ const Login = () => {
   };
 
   if (cargando) {
-    return <Lotties />;
+    return <Lotties fullScreen={false} mensaje="" />;
   }
 
   return (

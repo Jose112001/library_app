@@ -17,15 +17,14 @@ const Callback = () => {
         return;
       }
 
-      // Verifica si ya existe en la tabla 'usuarios'
       const { data: existente, error: errorConsulta } = await supabase
-        .from("usuarios") 
+        .from("usuarios")
         .select("*")
         .eq("id_auth", user.id)
         .single();
 
-      if (!existente && !errorConsulta) {
-        // Insertar nuevo usuario
+      if (!existente && errorConsulta.code !="") {
+        // Insertar usuario google
         const { error: insertError } = await supabase.from("usuarios").insert([
           {
             nombre:
@@ -35,8 +34,8 @@ const Callback = () => {
             correo: user.email,
             telefono: null,
             direccion: "",
-            contrasena: "", // Como viene por Google, queda vacía
-            id_rol: 1, // Suponiendo que 1 es lector
+            contraseña: "",
+            id_rol: 1,
             fecha_registro: new Date().toISOString(),
             id_auth: user.id,
           },
@@ -55,7 +54,7 @@ const Callback = () => {
     registrarUsuarioGoogle();
   }, [navigate]);
 
-  return <Lotties />;
+  return <Lotties fullScreen={false} mensaje="" />;
 };
 
 export default Callback;

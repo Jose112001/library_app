@@ -5,8 +5,9 @@ import { supabase } from "../services/supabase";
 
 const Home = () => {
   const [user, setUser] = useState(null);
+  const [dataUsr, setDataUsr] = useState(null);
   const [stats, setStats] = useState(null);
-  const { handleLogout} = useContext(UserContext);
+  const { handleLogout } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,29 +19,34 @@ const Home = () => {
         return;
       }
 
-      setUser(userData.user);
+      console.log(userData);
 
-      const [librosTotal, librosDisponibles, prestamosActivos, misPrestamos] =
+      const { data: dataUsu, error: errorUsu } = await supabase
+        .from("usuarios")
+        .select("id_usuario, nombre")
+        .eq("id_auth", user.id)
+        .single();
+
+      setDataUsr(dataUsu);
+      setUser(userData.user);
+      console.log("userData.user");
+      console.log(dataUsu);
+      const [librosTotal, prestamosActivos, misPrestamos] =
         await Promise.all([
           supabase.from("libros").select("*", { count: "exact", head: true }),
           supabase
-            .from("libros")
+            .from("prestamos")
             .select("*", { count: "exact", head: true })
-            .eq("disponible", true),
+            .eq("estado", "1"),
           supabase
             .from("prestamos")
             .select("*", { count: "exact", head: true })
-            .eq("devuelto", false),
-          supabase
-            .from("prestamos")
-            .select("*", { count: "exact", head: true })
-            .eq("devuelto", false)
-            .eq("id_usuario", userData.user.id),
+            .eq("estado", "1")
+            .eq("id_usuario",dataUsr.id_usuario),
         ]);
 
       setStats({
         totalLibros: librosTotal.count ?? 0,
-        librosDisponibles: librosDisponibles.count ?? 0,
         prestamosActivos: prestamosActivos.count ?? 0,
         misPrestamos: misPrestamos.count ?? 0,
       });
@@ -48,8 +54,6 @@ const Home = () => {
 
     fetchUserAndStats();
   }, [navigate]);
-
-  
 
   return (
     <div
@@ -68,8 +72,6 @@ const Home = () => {
                 <strong>Nombre:</strong> {user.user_metadata.full_name}
               </p>
             )}
-            {console.log(user)}
-            {console.log(user.user_metadata)}
           </div>
         )}
 
@@ -78,10 +80,6 @@ const Home = () => {
             <div className="p-4 bg-blue-100 rounded">
               <h2 className="text-lg font-bold">{stats.totalLibros}</h2>
               <p>Total de libros</p>
-            </div>
-            <div className="p-4 bg-green-100 rounded">
-              <h2 className="text-lg font-bold">{stats.librosDisponibles}</h2>
-              <p>Libros disponibles</p>
             </div>
             <div className="p-4 bg-yellow-100 rounded">
               <h2 className="text-lg font-bold">{stats.prestamosActivos}</h2>

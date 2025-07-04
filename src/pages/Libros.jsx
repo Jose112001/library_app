@@ -15,7 +15,6 @@ const Libros = () => {
 
   useEffect(() => {
     const obtenerLibros = async () => {
-      
       const { data, error } = await supabase
         .from("libros")
         .select("*")
@@ -45,8 +44,6 @@ const Libros = () => {
   return (
     <div className="max-w-4xl mx-auto mt-6 p-4 bg-white rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Listado de Libros</h2>
-      {console.log("rol")}
-      {console.log(rolUsuario)}
       {rolUsuario?.id_rol === 2 && (
         <div className="mb-4">
           <Link
@@ -64,7 +61,8 @@ const Libros = () => {
         onChange={(e) => setBusqueda(e.target.value)}
         className="w-full p-2 border rounded mb-4"
       />
-
+      {console.log("librosFiltrados")}
+      {console.log(librosFiltrados)}
       {loading ? (
         <p>Cargando libros...</p>
       ) : librosFiltrados.length === 0 ? (
@@ -73,15 +71,24 @@ const Libros = () => {
         <ul className="space-y-3">
           {librosFiltrados.map((libro) => (
             <li
-              key={libro.id} // ✅ Agrega la key aquí
-              className="p-3 border rounded hover:bg-gray-100 transition"
+              key={libro.id}
+              className={`p-3 border rounded hover:bg-gray-100 transition ${libro.cantidad_disponible<=0 ? "disponible":"ocupado"}`}
             >
               <h3 className="font-semibold">{libro.titulo}</h3>
               <p>Autor: {libro.autor}</p>
-              <p>
-                Año: {libro.anio_publicacion} | ISBN: {libro.isbn} |{" "}
-                {libro.disponible ? "✅ Disponible" : "❌ Prestado"}
-              </p>
+              <p>Categoría: {libro.genero}</p>
+              <p> ISBN: {libro.isbn}</p>
+              <p> Cantidad disponible: {libro.cantidad_disponible}</p>
+              {rolUsuario?.id_rol === 1 && (
+                <button
+                  onClick={() => {
+                    setLibroSeleccionado(libro);
+                    setMostrarModal(true);
+                  }}
+                >
+                  📖 Solicitar préstamo
+                </button>
+              )}
             </li>
           ))}
         </ul>

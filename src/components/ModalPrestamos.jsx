@@ -1,67 +1,108 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import "../assets/css/ModalPrestamo.css";
 import { supabase } from "../services/supabase";
-import "./ModalPrestamo.css"; // Importamos los estilos CSS
 
-const ModalPrestamo = ({ libro, usuario, onClose, onSuccess }) => {
-  const [mensaje, setMensaje] = useState("");
+const ModalPrestamo = ({ libro, usuario, onClose, onExito }) => {
+  const [fechaRetiro, setFechaRetiro] = useState("");
+  const [fechaEntrega, setFechaEntrega] = useState("");
 
-  const registrarPrestamo = async () => {
-    if (!libro || !usuario) return;
+  useEffect(() => {
+    if (fechaRetiro) {
+      const retiro = new Date(fechaRetiro);
+      retiro.setDate(retiro.getDate() + 7);
+      setFechaEntrega(retiro.toISOString().split("T")[0]);
+    }
+  }, [fechaRetiro]);
 
-    const { data: prestamosActivos, error: errorCount } = await supabase
-      .from("prestamos")
-      .select("*", { count: "exact" })
-      .eq("id_usuario", usuario.id)
-      .is("fecha_devolucion", null);
-
-    if (errorCount) {
-      setMensaje("⚠️ Error al validar préstamos.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Libro recibido en modal:", libro);
+    console.log("Libro recibido en modal:", usuario.user_metadata);
+    if (!libro?.cantidad_disponible || isNaN(libro.cantidad_disponible)) {
+      alert(
+        "⚠️ No se puede registrar el préstamo: cantidad disponible inválida."
+      );
       return;
     }
+     const { data: dataUsu, error: errorUsu } = await supabase
+        .from("usuarios")
+        .select("id_usuario, nombre")
+        .eq("id_auth", usuario.id)
+        .single();
+    console.log(dataUsu);
 
-    if ((prestamosActivos?.length || 0) >= 3) {
-      setMensaje("❌ No puedes tener más de 3 libros prestados.");
-      return;
-    }
-
-    if (libro.cantidad_disponible <= 0) {
-      setMensaje("❌ No hay ejemplares disponibles.");
-      return;
-    }
-
-    const { error: errorInsert } = await supabase.from("prestamos").insert([
+    //Registrar préstamo
+    const { error: errorPrestamo } = await supabase.from("prestamos").insert([
       {
-        id_libro: libro.id,
-        id_usuario: usuario.id,
-        fecha_prestamo: new Date().toISOString().split("T")[0],
+        id_usuario: dataUsu.id_usuario,
+        id_libro: libro.id_libro,
+        fecha_prestamo: fechaRetiro,
+        fecha_devolucion: fechaEntrega,
+        estado: 1, // 1:prestado, 2:disponible
       },
     ]);
 
-    if (errorInsert) {
-      setMensaje("❌ Error al registrar préstamo.");
-    } else {
-      setMensaje("✅ Préstamo registrado correctamente.");
-      onSuccess();
-      setTimeout(onClose, 2000);
+    if (errorPrestamo) {
+      alert("❌ Error al registrar el préstamo: " + errorPrestamo.message);
+      return;
     }
+
+    //Actualizar cantidad_disponible
+    const nuevaCantidad = libro.cantidad_disponible - 1;
+    
+
+    const { error: errorUpdate } = await supabase
+      .from("libros")
+      .update({ cantidad_disponible: nuevaCantidad })
+      .eq("id_libro", libro.id_libro);
+
+    if (errorUpdate) {
+      alert(
+        "⚠️ Préstamo registrado, pero no se actualizó el inventario: " +
+          errorUpdate.message
+      );
+      return;
+    }
+
+    alert("✅ Préstamo registrado correctamente.");
+    onExito();
+    onClose();
   };
 
   return (
     <div className="modal-overlay">
-      <div className="modal-box">
-        <h2>📖 Solicitar préstamo</h2>
-        <p>
-          ¿Deseas solicitar el libro <strong>{libro.titulo}</strong>?
-        </p>
-        {mensaje && <p className="mensaje">{mensaje}</p>}
-        <div className="modal-buttons">
-          <button onClick={registrarPrestamo} className="btn btn-confirmar">
-            Confirmar
-          </button>
-          <button onClick={onClose} className="btn btn-cancelar">
-            Cancelar
-          </button>
-        </div>
+      <div className="modal">
+        <h2>📚 Solicitar Préstamo</h2>
+        <form onSubmit={handleSubmit} className="form">
+          <div>
+            <strong>Título:</strong> {libro.titulo}
+          </div>
+          <div>
+            <strong>Autor:</strong> {libro.autor}
+          </div>
+
+          <label>
+            Fecha de retiro:
+            <input
+              type="date"
+              value={fechaRetiro}
+              onChange={(e) => setFechaRetiro(e.target.value)}
+              required
+            />
+          </label>
+
+          <label>
+            Fecha de entrega:
+            <input type="date" value={fechaEntrega} readOnly />
+          </label>
+
+          <div className="modal-buttons">
+            <button type="submit">📥 Confirmar Préstamo</button>
+            <button type="button" onClick={onClose}>
+              ❌ Cancelar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
