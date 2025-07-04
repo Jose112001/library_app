@@ -1,7 +1,6 @@
-import Lottie from "lottie-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import animacionCarga from "../assets/lotties/loading_lottie.json";
+import Lotties from "../components/Lotties";
 import { supabase } from "../services/supabase";
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,7 +8,6 @@ const Login = () => {
   const [mensaje, setMensaje] = useState("");
   const [mostrarReenvio, setMostrarReenvio] = useState(false);
   const [cargando, setCargando] = useState(false);
-
   const navigate = useNavigate();
 
   const loginConGoogle = async () => {
@@ -83,16 +81,7 @@ const Login = () => {
   };
 
   if (cargando) {
-    return (
-      <div style={estiloLoading}>
-        <Lottie
-          animationData={animacionCarga}
-          loop={true}
-          style={{ height: 200 }}
-        ></Lottie>
-        <p>📚 Cargando biblioteca...</p>
-      </div>
-    );
+    return <Lotties />;
   }
 
   return (
@@ -147,16 +136,6 @@ const Login = () => {
       </form>
     </div>
   );
-};
-
-const estiloLoading = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100vh",
-  fontSize: "1.3rem",
-  textAlign: "center",
 };
 
 export default Login;

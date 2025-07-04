@@ -1,13 +1,16 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Lotties from "../components/Lotties";
 import { supabase } from "../services/supabase";
-
 const Callback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     const registrarUsuarioGoogle = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
       if (error || !user) {
         console.error("Error obteniendo usuario:", error);
@@ -16,7 +19,7 @@ const Callback = () => {
 
       // Verifica si ya existe en la tabla 'usuarios'
       const { data: existente, error: errorConsulta } = await supabase
-        .from("usuarios")
+        .from("usuarios") 
         .select("*")
         .eq("id_auth", user.id)
         .single();
@@ -25,7 +28,10 @@ const Callback = () => {
         // Insertar nuevo usuario
         const { error: insertError } = await supabase.from("usuarios").insert([
           {
-            nombre: user.user_metadata.full_name || user.user_metadata.name || "Sin nombre",
+            nombre:
+              user.user_metadata.full_name ||
+              user.user_metadata.name ||
+              "Sin nombre",
             correo: user.email,
             telefono: null,
             direccion: "",
@@ -49,7 +55,7 @@ const Callback = () => {
     registrarUsuarioGoogle();
   }, [navigate]);
 
-  return <p>⏳ Validando sesión con Google...</p>;
+  return <Lotties />;
 };
 
 export default Callback;

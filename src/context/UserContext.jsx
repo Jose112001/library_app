@@ -53,8 +53,10 @@ export const UserProvider = ({ children }) => {
   }, []);
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login"; // O usa navigate si estás en una ruta
+    window.location.href = "/login";
   };
+
+
   return (
     <UserContext.Provider
       value={{ usuario, setUsuario, rolUsuario, setRolUsuario, handleLogout }}
