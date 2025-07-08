@@ -10,40 +10,57 @@ const Home = () => {
   const { handleLogout } = useContext(UserContext);
   const navigate = useNavigate();
 
+  // 1. Obtener el usuario autenticado
   useEffect(() => {
-    const fetchUserAndStats = async () => {
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
-      if (userError || !userData?.user) {
+    const fetchUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
         navigate("/login");
         return;
       }
+      setUser(data.user);
+    };
+    fetchUser();
+  }, [navigate]);
 
-      console.log(userData);
+  // 2. Obtener información del usuario desde la tabla "usuarios"
+  useEffect(() => {
+    if (!user) return;
 
-      const { data: dataUsu, error: errorUsu } = await supabase
+    const fetchUserData = async () => {
+      const { data, error } = await supabase
         .from("usuarios")
-        .select("id_usuario, nombre")
+        .select("id_usuario, nombre, id_rol")
         .eq("id_auth", user.id)
         .single();
 
-      setDataUsr(dataUsu);
-      setUser(userData.user);
-      console.log("userData.user");
-      console.log(dataUsu);
-      const [librosTotal, prestamosActivos, misPrestamos] =
-        await Promise.all([
-          supabase.from("libros").select("*", { count: "exact", head: true }),
-          supabase
-            .from("prestamos")
-            .select("*", { count: "exact", head: true })
-            .eq("estado", "1"),
-          supabase
-            .from("prestamos")
-            .select("*", { count: "exact", head: true })
-            .eq("estado", "1")
-            .eq("id_usuario",dataUsr.id_usuario),
-        ]);
+      if (error) {
+        console.error("Error al obtener datos del usuario:", error);
+        return;
+      }
+
+      setDataUsr(data);
+    };
+    fetchUserData();
+  }, [user]);
+
+  // 3. Obtener estadísticas si ya está disponible dataUsr
+  useEffect(() => {
+    if (!dataUsr) return;
+
+    const fetchStats = async () => {
+      const [librosTotal, prestamosActivos, misPrestamos] = await Promise.all([
+        supabase.from("libros").select("*", { count: "exact", head: true }),
+        supabase
+          .from("prestamos")
+          .select("*", { count: "exact", head: true })
+          .eq("estado", "1"),
+        supabase
+          .from("prestamos")
+          .select("*", { count: "exact", head: true })
+          .eq("estado", "1")
+          .eq("id_usuario", dataUsr.id_usuario),
+      ]);
 
       setStats({
         totalLibros: librosTotal.count ?? 0,
@@ -51,14 +68,11 @@ const Home = () => {
         misPrestamos: misPrestamos.count ?? 0,
       });
     };
-
-    fetchUserAndStats();
-  }, [navigate]);
+    fetchStats();
+  }, [dataUsr]);
 
   return (
-    <div
-      className="contenedor" /*style={{backgroundImage: `url(${bgImage})`,backgroundSize: "cover",backgroundPosition: "center",minHeight: "100vh",padding: "2rem",}}*/
-    >
+    <div className="contenedor">
       <div className="max-w-3xl mx-auto p-6 bg-white bg-opacity-90 rounded shadow space-y-6">
         <h1 className="text-2xl font-bold">Bienvenido a la Biblioteca 📚</h1>
 
@@ -67,11 +81,12 @@ const Home = () => {
             <p>
               <strong>Correo:</strong> {user.email}
             </p>
-            {user.user_metadata?.full_name && (
-              <p>
-                <strong>Nombre:</strong> {user.user_metadata.full_name}
-              </p>
-            )}
+            <p>
+              <strong>Nombre:</strong>{" "}
+              {user.user_metadata.full_name
+                ? user.user_metadata.full_name
+                : "Administrador"}
+            </p>
           </div>
         )}
 
@@ -81,14 +96,19 @@ const Home = () => {
               <h2 className="text-lg font-bold">{stats.totalLibros}</h2>
               <p>Total de libros</p>
             </div>
-            <div className="p-4 bg-yellow-100 rounded">
-              <h2 className="text-lg font-bold">{stats.prestamosActivos}</h2>
-              <p>Préstamos activos</p>
-            </div>
-            <div className="p-4 bg-purple-100 rounded">
-              <h2 className="text-lg font-bold">{stats.misPrestamos}</h2>
-              <p>Mis préstamos activos</p>
-            </div>
+
+            {dataUsr?.id_rol == 1 && (
+              <div className="p-4 bg-purple-100 rounded">
+                <h2 className="text-lg font-bold">{stats.misPrestamos}</h2>
+                <p>Mis préstamos activos</p>
+              </div>
+            )}
+            {dataUsr?.id_rol == 2 && (
+              <div className="p-4 bg-purple-100 rounded">
+                <h2 className="text-lg font-bold">{stats.prestamosActivos}</h2>
+                <p>Préstamos activos</p>
+              </div>
+            )}
           </div>
         )}
 
